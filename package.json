@@ -10,12 +10,17 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "lint": "turbo run lint"
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "deck": "pnpm --filter @foundry/web dev"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }

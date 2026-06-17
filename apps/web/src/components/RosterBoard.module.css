@@ -1,0 +1,98 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: var(--sp-3);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.level {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 0 5px;
+}
+.top :global(.badge) {
+  margin-left: auto;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.role {
+  font-size: 12px;
+  color: var(--text-1);
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  font-size: 11px;
+  color: var(--text-1);
+  overflow: hidden;
+}
+.lane span.mono {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10.5px;
+  color: var(--text-1);
+}
+
+.metaRow,
+.last {
+  display: flex;
+  gap: var(--sp-2);
+  font-size: 11px;
+  align-items: baseline;
+}
+.k {
+  flex: 0 0 64px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.v {
+  color: var(--text-0);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.last .v {
+  color: var(--text-1);
+}
