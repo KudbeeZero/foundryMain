@@ -116,6 +116,13 @@ const ENV_PAIR_PATTERN =
 const SENSITIVE_KEY_PATTERN =
   /(key|secret|token|password|passwd|pwd|authorization|cookie|credential|prompt)/i;
 
+// Benign telemetry keys the Command Deck must display verbatim. Some of them
+// (notably "tokens") contain a SENSITIVE_KEY_PATTERN substring — "tokens"
+// matches "token" — so without this allowlist the pill's token count would be
+// scrubbed to «redacted» and render as "—". Exempt them explicitly rather than
+// loosen the secret pattern (which would risk leaking real "*_token" keys).
+const SAFE_METADATA_KEYS = new Set(["tokens"]);
+
 export function redactBeaconText(input: string): string {
   let out = input.replace(ENV_PAIR_PATTERN, (_m, key: string) => `${key}=${REDACTED}`);
   for (const pattern of SECRET_PATTERNS) {
@@ -138,7 +145,8 @@ function redactValue(value: unknown, keyIsSensitive: boolean): unknown {
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
-      out[k] = redactValue(v, SENSITIVE_KEY_PATTERN.test(k));
+      const sensitive = !SAFE_METADATA_KEYS.has(k) && SENSITIVE_KEY_PATTERN.test(k);
+      out[k] = redactValue(v, sensitive);
     }
     return out;
   }

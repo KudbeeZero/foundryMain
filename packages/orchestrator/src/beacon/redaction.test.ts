@@ -31,6 +31,23 @@ test("redactMetadata drops values under sensitive keys and recurses", () => {
   assert.ok(typeof nested.note === "string" && !(nested.note as string).includes("ghp_0123456789abcdef0123"));
 });
 
+test("redactMetadata keeps the benign 'tokens' telemetry but still drops real secret keys", () => {
+  const out = redactMetadata({
+    tokens: 21000,
+    contextPct: 47,
+    costUsd: 0.27,
+    access_token: "sk-shouldNotSurvive123456",
+    apiToken: "ghp_0123456789abcdef0123",
+  });
+  // The Beacon pill needs these verbatim.
+  assert.equal(out.tokens, 21000);
+  assert.equal(out.contextPct, 47);
+  assert.equal(out.costUsd, 0.27);
+  // ...but anything that is actually a *_token key is still scrubbed.
+  assert.notEqual(out.access_token, "sk-shouldNotSurvive123456");
+  assert.notEqual(out.apiToken, "ghp_0123456789abcdef0123");
+});
+
 test("sanitizeBeaconEvent validates and scrubs in one pass", () => {
   const e = sanitizeBeaconEvent({
     id: "1",
