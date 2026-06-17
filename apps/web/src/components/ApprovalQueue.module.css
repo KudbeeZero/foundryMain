@@ -1,0 +1,94 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+}
+.row:last-child {
+  border-bottom: none;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.action {
+  font-size: 13px;
+  font-weight: 700;
+}
+.risk {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--r-sm);
+  padding: 1px 6px;
+  border: 1px solid;
+}
+.high {
+  color: var(--st-blocked);
+  border-color: var(--st-blocked);
+  background: color-mix(in srgb, var(--st-blocked) 12%, transparent);
+}
+.medium {
+  color: var(--st-approval);
+  border-color: var(--st-approval);
+  background: color-mix(in srgb, var(--st-approval) 12%, transparent);
+}
+.low {
+  color: var(--st-completed);
+  border-color: var(--st-completed);
+  background: color-mix(in srgb, var(--st-completed) 12%, transparent);
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-1);
+}
+.reason {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 2px;
+}
+.actions button {
+  flex: 1;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 0;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border: 1px solid;
+  transition: filter 0.12s ease;
+}
+.actions button:hover {
+  filter: brightness(1.15);
+}
+.approve {
+  color: var(--bg-0);
+  background: var(--st-completed);
+  border-color: var(--st-completed);
+}
+.reject {
+  color: var(--st-blocked);
+  background: transparent;
+  border-color: var(--st-blocked);
+}
+
+.empty {
+  padding: var(--sp-4);
+  color: var(--text-2);
+  font-size: 12px;
+}

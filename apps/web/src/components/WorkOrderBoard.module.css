@@ -1,0 +1,130 @@
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(216px, 1fr);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  overflow-x: auto;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-2);
+  min-height: 120px;
+}
+
+.colHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
+  font-weight: 700;
+  padding: 2px 4px;
+}
+.count {
+  color: var(--text-2);
+  background: var(--bg-3);
+  border-radius: var(--r-pill);
+  padding: 0 7px;
+  font-size: 10px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.empty {
+  color: var(--text-2);
+  text-align: center;
+  font-size: 12px;
+  padding: var(--sp-3) 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.card:hover {
+  border-color: var(--border-strong);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.priority {
+  font-size: 10px;
+  font-weight: 800;
+  border: 1px solid;
+  border-radius: var(--r-sm);
+  padding: 0 5px;
+}
+.woId {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-2);
+}
+.mem {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, var(--border));
+  border-radius: var(--r-sm);
+  padding: 0 4px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.problem {
+  font-size: 11px;
+  color: var(--text-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.branch {
+  font-size: 10px;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer,
+.subFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: 10px;
+  color: var(--text-2);
+}
+.assignee {
+  color: var(--text-1);
+  font-weight: 600;
+}
+.subFooter {
+  border-top: 1px dashed var(--border);
+  padding-top: 4px;
+}

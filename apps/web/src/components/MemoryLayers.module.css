@@ -1,0 +1,39 @@
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+.tab {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.tabActive {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-inset));
+}
+
+.body {
+  padding: var(--sp-3) var(--sp-4);
+}
+.caption {
+  font-size: 11px;
+  color: var(--text-1);
+  margin-bottom: var(--sp-2);
+}
+.pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-0);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

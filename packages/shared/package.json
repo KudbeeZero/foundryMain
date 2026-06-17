@@ -11,6 +11,10 @@
     "./enums": {
       "types": "./src/enums.ts",
       "default": "./src/enums.ts"
+    },
+    "./beacon": {
+      "types": "./src/beacon.ts",
+      "default": "./src/beacon.ts"
     }
   },
   "dependencies": {

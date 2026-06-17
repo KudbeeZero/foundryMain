@@ -14,3 +14,11 @@ export type TaskId = Brand<string, "TaskId">;
 export type RunId = Brand<string, "RunId">;
 export type ToolCallId = Brand<string, "ToolCallId">;
 export type ApprovalId = Brand<string, "ApprovalId">;
+
+// Beacon / Command Deck additions. SessionId tracks a live coding session
+// (one Claude Code run-surface); BeaconEventId is a single event in the stream.
+// WorkOrderId is an alias of TaskId — a "work order" is the product-facing name
+// for a row in the tasks table.
+export type SessionId = Brand<string, "SessionId">;
+export type BeaconEventId = Brand<string, "BeaconEventId">;
+export type WorkOrderId = TaskId;
