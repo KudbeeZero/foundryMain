@@ -45,3 +45,6 @@ jobs:
 
       - name: Test — Claude Code publishers (redaction / no secrets leak)
         run: node --test scripts/beacon-hook.test.mjs
+
+      - name: Test — agent-runner (run loop → Beacon)
+        run: pnpm --filter @foundry/worker-agent-runner test
