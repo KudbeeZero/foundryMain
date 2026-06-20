@@ -8,19 +8,26 @@
   `GET /hooks/beacon/replay` that the Deck hydrates from. Off by default; live DB
   integration not yet exercised in CI (no Postgres there). Seen: 2026-06-17.
 
-- **P2 · `beacon_events` + replay have no RLS/auth.** The replay endpoint is
-  unauthenticated and the table has no row-level security; the read path is the API
-  service role only and events are redacted, so it's dev-safe — but must be gated
-  before any production deploy. Closes with Epic 5 (auth). Seen: 2026-06-20.
+- **RESOLVED 2026-06-20 · Auth wired (F14).** `/api/*` verifies a Supabase HS256
+  JWT (`middleware/auth.ts`) and rejects missing/malformed/expired/org-less tokens —
+  proven by a hermetic `jose`-signed test in CI. Seen: 2026-06-17.
 
-- **P1 · Auth integration documented but not wired.** Foundry's auth lane (E07)
-  is specified in `docs/team-system/AUTH_INTEGRATION.md` but no provider is
-  installed. Deferred deliberately — see that doc.
-  - Seen: 2026-06-17 · Revisit-by: 2026-07-31
+- **RESOLVED 2026-06-20 · Approve/Reject is real (F15/F16).** `POST
+  /api/approvals/:id/decision` persists to `approval_requests` and transitions the
+  run (approve→running, reject→cancelled); the Deck calls it. Note: real *tool
+  execution* after approval is still the Execution-plane gap below. Seen: 2026-06-17.
 
-- **P2 · Approve/Reject is UI-only.** Emits a local Beacon event; no real gate,
-  no DB write, no tool execution. Intentional for this stage.
-  - Seen: 2026-06-17 · Revisit-by: when H+2 lands a real run loop
+- **RESOLVED 2026-06-20 · `beacon_events` RLS.** `0002_beacon_events_rls.sql` enables
+  RLS (NULL-org admitted; service role bypasses). The replay endpoint itself is still
+  unauthenticated (see remaining gap). Seen: 2026-06-20.
+
+- **P2 · `/hooks/beacon/replay` is unauthenticated.** Gated by `BEACON_PERSIST` and
+  returns redacted events only, but it's outside the JWT boundary. Add auth before a
+  production deploy. Seen: 2026-06-20 · Revisit-by: before production.
+
+- **P1 · No real tool execution after approval.** An approved run flips to `running`
+  but no agent reasoning / tools actually run yet (Execution plane). `advanceRun` is
+  a placeholder start→complete. Seen: 2026-06-20 · Revisit-by: Execution-plane epic.
 
 - **RESOLVED 2026-06-20 · Real Claude Code hooks.** Receiver (F1/F2), tunnel (F3),
   and publishers (F5/F6/F7) all landed on PR #4; end-to-end publisher→receiver

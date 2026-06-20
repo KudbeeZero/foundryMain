@@ -36,7 +36,7 @@ let synthCounter = 0;
 
 export interface UseBeacon {
   state: BeaconState;
-  decideApproval: (approvalId: string, decision: "approved" | "rejected") => void;
+  decideApproval: (approvalId: string, decision: "approved" | "rejected") => Promise<void>;
 }
 
 export function useBeacon(tickMs = 3500): UseBeacon {
@@ -86,22 +86,44 @@ export function useBeacon(tickMs = 3500): UseBeacon {
     };
   }, []);
 
-  // UI-only approval decision: emits a Beacon event into the local stream. No real
-  // side effects (acceptance criterion 9) — the reducer just reflects the decision.
+  // Approval decision (Epic 5 · F16). Calls the real authed endpoint
+  // (POST /api/approvals/:id/decision) so the decision persists and the run
+  // transitions server-side. The local Beacon event is then folded so the Deck
+  // reflects it immediately. In demo / unauthed mode the API call fails (401/no
+  // token) and we fall back to a local-only reflection so the Deck stays live.
   const decideApproval = useCallback(
-    (approvalId: string, decision: "approved" | "rejected") => {
-      synthCounter += 1;
-      const event = sanitizeBeaconEvent({
-        id: `ui-${synthCounter}`,
-        type: "beacon.approval.decided",
-        timestamp: new Date().toISOString(),
-        source: "system",
-        status: decision === "approved" ? "running" : "blocked",
-        title: `Approval ${decision}`,
-        message: `Operator ${decision} ${approvalId}`,
-        metadata: { approvalId, decision },
-      });
-      dispatch({ kind: "event", event });
+    async (approvalId: string, decision: "approved" | "rejected") => {
+      const reflect = (confirmed: boolean) => {
+        synthCounter += 1;
+        dispatch({
+          kind: "event",
+          event: sanitizeBeaconEvent({
+            id: `ui-${synthCounter}`,
+            type: "beacon.approval.decided",
+            timestamp: new Date().toISOString(),
+            source: "system",
+            status: decision === "approved" ? "running" : "blocked",
+            title: `Approval ${decision}`,
+            message: `Operator ${decision} ${approvalId}`,
+            metadata: { approvalId, decision, confirmed },
+          }),
+        });
+      };
+      try {
+        const token =
+          typeof localStorage !== "undefined" ? localStorage.getItem("foundry_token") : null;
+        const res = await fetch(`/api/approvals/${encodeURIComponent(approvalId)}/decision`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ decision }),
+        });
+        reflect(res.ok); // confirmed=true only when the API persisted it
+      } catch {
+        reflect(false); // demo / offline — local-only reflection
+      }
     },
     [],
   );

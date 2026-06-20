@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { authMiddleware, type AuthVariables } from "./middleware/auth.js";
 import { messagesRoute } from "./routes/messages.js";
+import { approvalsRoute } from "./routes/approvals.js";
 import { demoRoute } from "./routes/demo.js";
 import { hooksRoute } from "./routes/hooks.js";
 import { env } from "./env.js";
@@ -25,6 +26,7 @@ app.route("/hooks", hooksRoute);
 // Everything under /api requires authentication. (Unchanged.)
 app.use("/api/*", authMiddleware);
 app.route("/api", messagesRoute);
+app.route("/api", approvalsRoute);
 
 // Boot the server unless imported under test.
 if (process.env.NODE_ENV !== "test") {

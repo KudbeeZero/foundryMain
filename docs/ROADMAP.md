@@ -137,6 +137,14 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > Newest first. Marks features that have landed on a branch / PR.
 
+- **2026-06-20 · Epic 5 · Real approvals + auth**
+  - ✅ **F14** — Supabase HS256 JWT auth on `/api/*` (was already wired in `middleware/auth.ts`); hardened intent + a **hermetic test** (`jose` signs a token → middleware accepts valid, rejects missing / malformed / wrong-secret / expired / org-less). `/api/*` rejects missing/invalid tokens with a real provider, proven in CI.
+  - ✅ **F15** — real approval gate: `GET /api/approvals` + `POST /api/approvals/:id/decision` (authed, org-scoped). A decision writes `approval_requests` (status + decided_by/at) and transitions the linked `agent_runs` — **approve → running, reject → cancelled**. Pure `resolveApprovalDecision` unit-tested; already-decided → 409.
+  - ✅ **F16** — Deck Approval Queue calls the real endpoint (`useBeacon.decideApproval`), folding the persisted decision; falls back to a local-only reflection in demo / unauthed mode.
+  - ✅ **Bonus** — RLS on `beacon_events` (`0002_beacon_events_rls.sql`, NULL-org admitted, service role bypasses) — closes the Epic 3 GAP.
+  - Decisions for review: reject **cancels** the run (per done-when); demo falls back to local when no token. Live DB path (approval writes) not exercised in CI (no Postgres) — pure logic + auth are.
+  - Next: **Epic 6** deck polish (F17–F19).
+
 - **2026-06-20 · Epic 4 · Worker run loop**
   - ✅ **F12** — `workers/agent-runner` claims queued `agent_runs`, advances them through a minimal start→complete lifecycle, and marks the terminal status. IO injected (`runOnce`/`processRun`); real DB adapter guarded + fail-open.
   - ✅ **F13** — pure `agentEventToBeacon` bridge (`@foundry/orchestrator`) maps each `AgentEvent` to `beacon.run.*` / `beacon.command.*` / `beacon.approval.*` (re-sanitized, deterministic ids); the worker POSTs them to the receiver. A mention → queued run now lights the Deck.

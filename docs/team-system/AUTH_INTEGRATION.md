@@ -1,17 +1,26 @@
-# Foundry Auth Integration (deferred)
+# Foundry Auth Integration
 
 Auth is **Foundry's own lane**, owned by **E07 (Amara)**. This document describes
-how the team treats auth work. **Nothing here is wired in this stage** — the
-Command Deck runs in local/demo mode with no production auth, and the existing
-`/api` bearer-token boundary is left exactly as it was.
+how the team treats auth work and the current wiring.
 
-## Current state (Stage 2)
+## Current state (Epic 5 — wired)
 
-- `apps/api` already verifies a Supabase-issued JWT (HS256) on `/api/*` via
-  `apps/api/src/middleware/auth.ts`. **This PR does not touch it.**
-- The Command Deck's `/demo/*` routes are intentionally unauthenticated, read-only,
-  mock-only, and gated by `ENABLE_DEMO_ROUTES`. They never weaken `/api`.
-- No new auth provider is installed.
+- `/api/*` verifies a **Supabase-issued JWT (HS256)** via
+  `apps/api/src/middleware/auth.ts` using `SUPABASE_JWT_SECRET`. It expects `sub`
+  (user id) + a custom `org_id` claim, and rejects missing / malformed / expired /
+  signature-invalid / org-less tokens with `401`. This is covered by a hermetic test
+  (`middleware/auth.test.ts`) that signs tokens with `jose` — no external provider
+  needed to prove the boundary in CI.
+- **Real approvals (F15/F16):** `GET /api/approvals` + `POST
+  /api/approvals/:id/decision` are authed and org-scoped; a decision persists to
+  `approval_requests` and transitions the linked `agent_runs`. The Deck's Approval
+  Queue calls the real endpoint (`useBeacon.decideApproval`), falling back to a
+  local-only reflection in demo / unauthed mode.
+- The Command Deck's `/demo/*` routes remain unauthenticated, read-only, mock-only,
+  and gated by `ENABLE_DEMO_ROUTES`. They never weaken `/api`.
+- No third-party auth provider/SDK is installed — verification is the Supabase JWT
+  secret + `jose`. Richer end-user auth/orgs (provider, sign-in UI, refresh) is
+  still future work.
 
 ## Who owns auth
 
