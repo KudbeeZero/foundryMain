@@ -1,15 +1,18 @@
 import { eq } from "drizzle-orm";
-import { createDb, agentRuns } from "@foundry/db";
+import { createDb, agentRuns, messages } from "@foundry/db";
 import type { QueuedRun } from "@foundry/orchestrator";
 import type { BeaconEvent } from "@foundry/shared";
 import { runOnce, type RunnerDeps, type TerminalRunStatus } from "./runner.js";
+import { createAnthropicReasoner } from "./llm.js";
 
 export const PACKAGE = "@foundry/worker-agent-runner" as const;
 export * from "./runner.js";
+export * from "./llm.js";
 
-// Real IO adapters wiring the agent-runner core to the database (claim/mark runs)
-// and the Beacon receiver (emit events). Everything is guarded + fail-open so the
-// worker degrades cleanly when the DB or receiver is unavailable.
+// Real IO adapters wiring the agent-runner core to the database (claim/mark runs,
+// fetch the triggering prompt, post the result) and the Beacon receiver. Everything
+// is guarded + fail-open so the worker degrades cleanly when the DB or receiver is
+// unavailable.
 
 const TERMINAL: Record<TerminalRunStatus, "succeeded" | "failed"> = {
   succeeded: "succeeded",
@@ -27,15 +30,41 @@ function buildDeps(): RunnerDeps | null {
   return {
     claimQueued: async (): Promise<QueuedRun[]> => {
       const rows = await db
-        .select({ id: agentRuns.id, agentId: agentRuns.agentId, taskId: agentRuns.taskId })
+        .select({
+          id: agentRuns.id,
+          agentId: agentRuns.agentId,
+          taskId: agentRuns.taskId,
+          orgId: agentRuns.orgId,
+          channelId: agentRuns.channelId,
+          triggeringMessageId: agentRuns.triggeringMessageId,
+        })
         .from(agentRuns)
         .where(eq(agentRuns.status, "queued"))
         .limit(10);
-      // Claim them so a second tick doesn't pick them up again.
+
+      const claimed: QueuedRun[] = [];
       for (const r of rows) {
+        // Claim it so a second tick doesn't pick it up again.
         await db.update(agentRuns).set({ status: "running", startedAt: new Date() }).where(eq(agentRuns.id, r.id));
+        let prompt: string | undefined;
+        if (r.triggeringMessageId) {
+          const [m] = await db
+            .select({ body: messages.body })
+            .from(messages)
+            .where(eq(messages.id, r.triggeringMessageId))
+            .limit(1);
+          prompt = m?.body ?? undefined;
+        }
+        claimed.push({
+          id: r.id,
+          agentId: r.agentId ?? undefined,
+          taskId: r.taskId ?? undefined,
+          orgId: r.orgId ?? undefined,
+          channelId: r.channelId ?? undefined,
+          prompt,
+        });
       }
-      return rows.map((r) => ({ id: r.id, agentId: r.agentId ?? undefined, taskId: r.taskId ?? undefined }));
+      return claimed;
     },
 
     emit: async (event: BeaconEvent): Promise<void> => {
@@ -53,6 +82,21 @@ function buildDeps(): RunnerDeps | null {
 
     markStatus: async (runId, status): Promise<void> => {
       await db.update(agentRuns).set({ status: TERMINAL[status], finishedAt: new Date() }).where(eq(agentRuns.id, runId));
+    },
+
+    // Real Claude reasoning when ANTHROPIC_API_KEY is set; otherwise undefined →
+    // the worker falls back to the placeholder lifecycle.
+    reason: createAnthropicReasoner() ?? undefined,
+
+    // Post the model's result back to the run's channel as an agent-authored message.
+    postResult: async (run, text): Promise<void> => {
+      if (!run.orgId || !run.channelId) return;
+      await db.insert(messages).values({
+        orgId: run.orgId,
+        channelId: run.channelId,
+        authorAgentId: run.agentId ?? null,
+        body: text,
+      });
     },
   };
 }

@@ -76,12 +76,17 @@ export function agentEventToBeacon(
   }
 }
 
-// A queued run as the worker claims it from `agent_runs`.
+// A queued run as the worker claims it from `agent_runs`. The optional fields are
+// hydrated by the worker's real DB adapter (Execution plane) — the pure bridge
+// ignores them.
 export interface QueuedRun {
   id: string;
   agentId?: string;
   repoId?: string;
   taskId?: string;
+  orgId?: string;
+  channelId?: string;
+  prompt?: string; // the triggering message body, fed to the model as the task
 }
 
 // Minimal, honest run lifecycle: a queued run starts and completes. Real agent

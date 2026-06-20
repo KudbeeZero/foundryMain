@@ -3,7 +3,7 @@ import {
   agentEventToBeacon,
   type QueuedRun,
 } from "@foundry/orchestrator";
-import type { BeaconEvent } from "@foundry/shared";
+import type { AgentEvent, BeaconEvent } from "@foundry/shared";
 
 // Agent-runner core (ROADMAP Epic 4 · F12/F13). Pure-ish orchestration with all IO
 // injected so it is unit-testable with no DB / Redis / network: the worker entry
@@ -18,6 +18,11 @@ export interface RunnerDeps {
   emit: (event: BeaconEvent) => Promise<void>;
   // Persist the run's terminal status.
   markStatus: (runId: string, status: TerminalRunStatus) => Promise<void>;
+  // Execution plane: produce a real model result for the run. When absent (no
+  // ANTHROPIC_API_KEY), the run uses the placeholder start→complete lifecycle.
+  reason?: (run: QueuedRun) => Promise<string>;
+  // Persist the model's result back to the run's channel (best-effort).
+  postResult?: (run: QueuedRun, text: string) => Promise<void>;
   // Clock (injectable for deterministic tests).
   now?: () => string;
 }
@@ -28,10 +33,29 @@ export interface RunnerDeps {
 export async function processRun(run: QueuedRun, deps: RunnerDeps): Promise<TerminalRunStatus> {
   const now = deps.now ?? (() => new Date().toISOString());
   const ctx = { agentId: run.agentId, repoId: run.repoId, workOrderId: run.taskId, now: now() };
+  const push = async (ae: AgentEvent) => {
+    const be = agentEventToBeacon(ae, ctx);
+    if (be) await deps.emit(be);
+  };
   try {
-    for (const ae of advanceRun(run, ctx.now)) {
-      const be = agentEventToBeacon(ae, ctx);
-      if (be) await deps.emit(be);
+    if (deps.reason) {
+      // Real model run (Execution plane). Modeled as a "respond" tool call so the
+      // existing bridge surfaces the result text on the Deck (command.finished).
+      await push({ type: "run.started", runId: run.id, at: ctx.now });
+      await push({ type: "tool.requested", runId: run.id, toolCallId: "respond", toolName: "respond", input: {} });
+      const text = await deps.reason(run);
+      await push({ type: "tool.executed", runId: run.id, toolCallId: "respond", ok: true, output: text });
+      if (deps.postResult) {
+        try {
+          await deps.postResult(run, text);
+        } catch {
+          /* posting the result is best-effort */
+        }
+      }
+      await push({ type: "run.completed", runId: run.id, at: ctx.now });
+    } else {
+      // No reasoner configured → placeholder start→complete lifecycle (Epic 4).
+      for (const ae of advanceRun(run, ctx.now)) await push(ae);
     }
     await deps.markStatus(run.id, "succeeded");
     return "succeeded";
