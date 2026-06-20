@@ -46,6 +46,50 @@ test("runOnce: an emit failure flips the run to failed (beacon.run.failed + mark
   assert.deepEqual(statuses, [["R2", "failed"]]);
 });
 
+test("runOnce: with a reasoner, surfaces the model result and posts it back", async () => {
+  const emitted: BeaconEvent[] = [];
+  const posted: [string, string][] = [];
+  const deps: RunnerDeps = {
+    claimQueued: async () => [{ id: "R3", agentId: "A1", channelId: "C1", prompt: "plan it" }],
+    emit: async (e) => { emitted.push(e); },
+    markStatus: async () => {},
+    reason: async (run) => `RESULT for ${run.prompt}`,
+    postResult: async (run, text) => { posted.push([run.id, text]); },
+    now: () => FIXED,
+  };
+
+  await runOnce(deps);
+
+  const types = emitted.map((e) => e.type);
+  assert.deepEqual(types, [
+    "beacon.run.started",
+    "beacon.command.started",
+    "beacon.command.finished",
+    "beacon.run.completed",
+  ]);
+  // The result text reaches the Deck via command.finished, and is posted back.
+  const finished = emitted.find((e) => e.type === "beacon.command.finished")!;
+  assert.match(finished.message, /RESULT for plan it/);
+  assert.deepEqual(posted, [["R3", "RESULT for plan it"]]);
+});
+
+test("runOnce: a reasoner error fails the run (beacon.run.failed + marked failed)", async () => {
+  const emitted: BeaconEvent[] = [];
+  const statuses: [string, string][] = [];
+  const deps: RunnerDeps = {
+    claimQueued: async () => [{ id: "R4" }],
+    emit: async (e) => { emitted.push(e); },
+    markStatus: async (id, s) => { statuses.push([id, s]); },
+    reason: async () => { throw new Error("model boom"); },
+    now: () => FIXED,
+  };
+
+  await runOnce(deps);
+
+  assert.ok(emitted.some((e) => e.type === "beacon.run.failed"));
+  assert.deepEqual(statuses, [["R4", "failed"]]);
+});
+
 test("runOnce: empty queue is a no-op", async () => {
   const deps: RunnerDeps = {
     claimQueued: async () => [],

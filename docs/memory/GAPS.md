@@ -25,9 +25,12 @@
   returns redacted events only, but it's outside the JWT boundary. Add auth before a
   production deploy. Seen: 2026-06-20 · Revisit-by: before production.
 
-- **P1 · No real tool execution after approval.** An approved run flips to `running`
-  but no agent reasoning / tools actually run yet (Execution plane). `advanceRun` is
-  a placeholder start→complete. Seen: 2026-06-20 · Revisit-by: Execution-plane epic.
+- **P1 · No real tool *execution* yet (reasoning is real).** Execution plane
+  increment 1 landed: a queued run now makes a real `claude-opus-4-8` call and posts
+  the result (flag-gated on `ANTHROPIC_API_KEY`). Still deferred: the agent cannot
+  run bash / edit files / execute code — increment 2 adds sandboxed tools behind the
+  Epic 5 approval gate. The live model call is also not exercised in CI (no key).
+  Seen: 2026-06-20 · Revisit-by: Execution-plane increment 2.
 
 - **RESOLVED 2026-06-20 · Real Claude Code hooks.** Receiver (F1/F2), tunnel (F3),
   and publishers (F5/F6/F7) all landed on PR #4; end-to-end publisher→receiver

@@ -137,6 +137,13 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > Newest first. Marks features that have landed on a branch / PR.
 
+- **2026-06-20 · Execution plane · increment 1 (real reasoning)**
+  - Replaced the `advanceRun` placeholder with a **real Claude run**: `workers/agent-runner/src/llm.ts` calls `claude-opus-4-8` (adaptive thinking, high effort) via the official `@anthropic-ai/sdk` (pinned `0.105.0`). The model produces a text result; the worker surfaces it on the Deck (`beacon.command.finished`) and posts it back to the run's channel as an agent message.
+  - **Security boundary (operator decision):** reasoning **only** — no bash, no file writes, no code execution, no server tools. Zero local side effects. Sandboxed tools behind the approval gate remain a later increment.
+  - **Flag-gated:** the reasoner exists only when `ANTHROPIC_API_KEY` is set; otherwise the worker falls back to the placeholder lifecycle, so dev/CI run with no key and never call the API. The triggering message body becomes the prompt.
+  - The model client is injected behind a seam, so the reasoner + run loop are unit-tested with a fake (no network/key): worker tests 10, total **58 green**. The live model call is not exercised in CI.
+  - Next: increment 2 — sandboxed tools (bash/edit) gated by the Epic 5 approval system.
+
 - **2026-06-20 · Epic 6 · Command Deck UX polish**
   - ✅ **F17** — statusline publisher (`scripts/beacon-statusline.sh`) forwards real session metrics (`costUsd`, `elapsedMs`, lines changed) from Claude Code's `.cost` via jq; the reducer + Beacon pill already consume them, so the pill shows real numbers. Fail-open (no-jq fallback = repo+model). Verified locally.
   - ✅ **F18** — connection indicator in the Command Bar: **live** (real persisted stream) / **demo** (API up, mock) / **local** (offline) with a colored dot, threaded from `useBeacon`.
