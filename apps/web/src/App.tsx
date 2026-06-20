@@ -1,6 +1,7 @@
 import { useBeacon } from "./hooks/useBeacon";
 import { CommandBar } from "./components/CommandBar";
 import { BeaconPill } from "./components/BeaconPill";
+import { TeamDashboard } from "./components/TeamDashboard";
 import { RosterBoard } from "./components/RosterBoard";
 import { TeamsPanel } from "./components/TeamsPanel";
 import { WorkOrderBoard } from "./components/WorkOrderBoard";
@@ -16,6 +17,7 @@ export function App() {
     <div className={styles.shell}>
       <CommandBar state={state} />
       <BeaconPill state={state} />
+      <TeamDashboard state={state} />
 
       <main className={styles.grid}>
         <section className={styles.colWide}>

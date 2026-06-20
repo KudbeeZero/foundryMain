@@ -37,6 +37,37 @@
   --p1: #d8a223;
   --p2: #58a6ff;
 
+  /* ── Robust color system (E09 Riya) ──────────────────────────────────────
+     Gradients are the Foundry visual signature: every status and every employee
+     carries a 2-stop ramp. Components reference these vars only — never inline
+     hex. `statusGradient()` / `employeeGradient()` in lib/format.ts resolve them. */
+
+  /* Brand "molten" gradient — the forge identity (orange → magenta). */
+  --grad-brand: linear-gradient(135deg, #ff8a3d 0%, #ff3da5 100%);
+  --grad-brand-soft: linear-gradient(135deg, rgba(255,138,61,0.18), rgba(255,61,165,0.18));
+
+  /* Status gradients (light → base), used by sigils, pips, panels. */
+  --grad-st-idle: linear-gradient(135deg, #7c8a98, #4b5563);
+  --grad-st-thinking: linear-gradient(135deg, #7cc0ff, #3b82f6);
+  --grad-st-editing: linear-gradient(135deg, #6bd4ff, #22a5e0);
+  --grad-st-running: linear-gradient(135deg, #b98bff, #7c3aed);
+  --grad-st-approval: linear-gradient(135deg, #ecc14f, #d8a223);
+  --grad-st-blocked: linear-gradient(135deg, #ff7b72, #d83a32);
+  --grad-st-completed: linear-gradient(135deg, #56d364, #2ea043);
+  --grad-st-failed: linear-gradient(135deg, #ff7b72, #d83a32);
+
+  /* Per-employee accent gradients — 10 distinct, legible on dark. id → --grad-eNN. */
+  --e01: #4cc2ff;  --grad-e01: linear-gradient(135deg, #4cc2ff, #3b82f6); /* Maya  · FE features */
+  --e02: #2dd4bf;  --grad-e02: linear-gradient(135deg, #2dd4bf, #10b981); /* John  · FE bugfix   */
+  --e03: #a371f7;  --grad-e03: linear-gradient(135deg, #a371f7, #6366f1); /* Priya · backend     */
+  --e04: #f6c453;  --grad-e04: linear-gradient(135deg, #f6c453, #d8a223); /* Diego · chain/funds */
+  --e05: #34d399;  --grad-e05: linear-gradient(135deg, #34d399, #0ea5a4); /* Sasha · database    */
+  --e06: #fb923c;  --grad-e06: linear-gradient(135deg, #fb923c, #f43f5e); /* Kenji · devops/CI   */
+  --e07: #f472b6;  --grad-e07: linear-gradient(135deg, #f472b6, #db2777); /* Amara · auth        */
+  --e08: #a3e635;  --grad-e08: linear-gradient(135deg, #a3e635, #4ade80); /* Theo  · QA          */
+  --e09: #e879f9;  --grad-e09: linear-gradient(135deg, #e879f9, #a855f7); /* Riya  · design      */
+  --e10: #60a5fa;  --grad-e10: linear-gradient(135deg, #60a5fa, #22d3ee); /* Lex   · architect   */
+
   /* Geometry */
   --r-sm: 6px;
   --r-md: 10px;

@@ -17,6 +17,10 @@
       config template, `docs/CLOUDFLARE_TUNNEL.md`. The branch's namesake.
     - **F20/F21** — `.github/workflows/ci.yml`: install → typecheck → tests on
       every PR/push. The green gate is now enforced, not just aspirational.
+    - **F23/F24/F25** — Deck visual system: gradient color tokens (status + 10
+      employee ramps), the hexagonal **Forge Sigil** + **StatusPip** (circles
+      retired), and the **Team Dashboard** hero surface ("who's on what"). See
+      `docs/DESIGN_SYSTEM.md`. Typecheck + web build green.
   - No DB migration (persistence is Epic 3). Real Cloudflare provisioning needs
     the Operator's account/token — scaffold is one command from live.
 

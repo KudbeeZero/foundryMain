@@ -6,14 +6,26 @@
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  padding: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) calc(var(--sp-3) + 3px);
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
+  overflow: hidden;
   transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.card::after {
+  /* employee-gradient accent spine */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--g);
 }
 .card:hover {
   border-color: var(--border-strong);

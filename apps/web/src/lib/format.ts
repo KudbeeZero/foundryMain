@@ -63,6 +63,43 @@ export function statusColor(status: BeaconStatus): string {
   return STATUS_VAR[status] ?? "var(--st-idle)";
 }
 
+const STATUS_GRAD: Record<BeaconStatus, string> = {
+  idle: "var(--grad-st-idle)",
+  thinking: "var(--grad-st-thinking)",
+  editing: "var(--grad-st-editing)",
+  running: "var(--grad-st-running)",
+  awaiting_approval: "var(--grad-st-approval)",
+  blocked: "var(--grad-st-blocked)",
+  completed: "var(--grad-st-completed)",
+  failed: "var(--grad-st-failed)",
+};
+
+// Gradient ramp for a status — drives the Forge Sigil ring, StatusPip, and panels.
+export function statusGradient(status: BeaconStatus): string {
+  return STATUS_GRAD[status] ?? "var(--grad-st-idle)";
+}
+
+// A status counts as "live" (animated) while the employee is actively working.
+export function isLiveStatus(status: BeaconStatus): boolean {
+  return status === "running" || status === "thinking" || status === "editing";
+}
+
+// Per-employee accent gradient / solid, keyed off the agent id (E01…E10). Falls
+// back to the brand ramp / cyan for any id outside the known roster.
+export function employeeGradient(id: string): string {
+  return `var(--grad-${id.toLowerCase()}, var(--grad-brand))`;
+}
+export function employeeAccent(id: string): string {
+  return `var(--${id.toLowerCase()}, var(--accent))`;
+}
+
+// Two-letter monogram for a Sigil, e.g. "Maya" → "MA", "Lex" → "LE".
+export function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
+  return name.trim().slice(0, 2).toUpperCase();
+}
+
 export function priorityColor(p: "P0" | "P1" | "P2"): string {
   return p === "P0" ? "var(--p0)" : p === "P1" ? "var(--p1)" : "var(--p2)";
 }

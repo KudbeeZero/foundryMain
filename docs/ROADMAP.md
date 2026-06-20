@@ -99,6 +99,9 @@ the first end-to-end loop.
 | F17 | Live context/token/cost/elapsed in the Beacon pill from real `statusline.snapshot` metadata | E01 | `apps/web/src/components/BeaconPill.tsx` | F5 | pill shows real numbers, not placeholders |
 | F18 | Connection state + "live vs mock" indicator in the Command Bar | E01 | `apps/web/src/components/CommandBar.tsx` | F11 | operator can tell at a glance whether the deck is on real data |
 | F19 | Reconnect/backoff + dedupe by event `id` in `useBeacon` | E02 | `apps/web/src/hooks/useBeacon.ts` | F11 | dropping/restoring the API never duplicates or freezes the stream |
+| F23 | Robust gradient color system (status + 10 employee ramps + brand) | E09 | `apps/web/src/styles/tokens.css`, `apps/web/src/lib/format.ts` | — | every status/employee resolves to a token ramp; no inline hex |
+| F24 | Forge Sigil (hexagon) + StatusPip replace all avatar/status circles | E09 | `apps/web/src/components/{Sigil,StatusPip}.*` | F23 | no `border-radius:50%` entity marks remain on the Deck |
+| F25 | Team Dashboard — gradient panels, "who's on what" | E01 | `apps/web/src/components/TeamDashboard.*`, `App.tsx` | F23, F24 | hero surface shows each employee's live status + current job from selectors |
 
 ---
 
@@ -139,4 +142,7 @@ persistence (Epic 3) and the worker loop (Epic 4).
   - ✅ **F2** — `x-beacon-token` shared-secret guard, fail-closed (503/401), constant-time.
   - ✅ **F3** — `pnpm tunnel` (quick + named cloudflared), `infra/cloudflared` template, `docs/CLOUDFLARE_TUNNEL.md`.
   - ✅ **F20/F21** — `.github/workflows/ci.yml`: install → typecheck → api + orchestrator tests on every PR/push.
+  - ✅ **F23** — robust gradient color system (status + 10 employee ramps + brand) in `tokens.css` + `format.ts` helpers.
+  - ✅ **F24** — Forge Sigil (hexagon) + StatusPip; round entity/status dots retired.
+  - ✅ **F25** — Team Dashboard hero surface (`docs/DESIGN_SYSTEM.md`); "who's on what" from selectors.
   - Next: **F5/F6** (real publishers), then **Epic 3** (persist + replay).
