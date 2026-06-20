@@ -137,6 +137,12 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > Newest first. Marks features that have landed on a branch / PR.
 
+- **2026-06-20 · Epic 4 · Worker run loop**
+  - ✅ **F12** — `workers/agent-runner` claims queued `agent_runs`, advances them through a minimal start→complete lifecycle, and marks the terminal status. IO injected (`runOnce`/`processRun`); real DB adapter guarded + fail-open.
+  - ✅ **F13** — pure `agentEventToBeacon` bridge (`@foundry/orchestrator`) maps each `AgentEvent` to `beacon.run.*` / `beacon.command.*` / `beacon.approval.*` (re-sanitized, deterministic ids); the worker POSTs them to the receiver. A mention → queued run now lights the Deck.
+  - Tests: bridge 7 (orchestrator) + runner 3 (worker, in-memory deps) — green in CI. Real agent reasoning + tool execution (Execution plane) still deferred.
+  - Next: **Epic 5** auth + real approvals; **Epic 6** deck polish (F17–F19).
+
 - **2026-06-20 · Epic 3 · Beacon persistence + replay**
   - ✅ **F8** — additive `beacon_events` table + migration `0001_beacon_events.sql` (no FK, no change to existing tables).
   - ✅ **F9** — receiver persists accepted events (idempotent, dynamic-import, fail-open, behind `BEACON_PERSIST`).

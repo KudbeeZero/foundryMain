@@ -4,57 +4,37 @@
 
 ## In flight
 
-- **Epic 3 — Beacon persistence + replay** — new PR off `main`
-  - Started: 2026-06-20 · Branch: `claude/epic3-beacon-persistence`
-  - Owners: E05 Sasha (migration), E03 Priya (receiver/replay), E01 Maya (Deck hydrate)
-  - Lanes: `packages/db/**`, `apps/api/src/{beacon-store,routes/hooks,env}.ts`,
-    `apps/web/src/hooks/useBeacon.ts`, docs
+- **Epic 4 — Worker run loop** — new PR off `main`
+  - Started: 2026-06-20 · Branch: `claude/epic4-worker-run-loop`
+  - Owners: E03 Priya (worker), E10 Lex (orchestration bridge)
+  - Lanes: `packages/orchestrator/src/runloop/**`, `workers/agent-runner/src/**`,
+    `.github/workflows/ci.yml`, docs
   - Status: `IN_FLIGHT` → `AWAITING_AUDIT` on merge
-  - What: additive `beacon_events` table (F8); opt-in receiver persistence behind
-    `BEACON_PERSIST`, fail-open, idempotent (F9); `GET /hooks/beacon/replay`
-    re-sanitized newest-first (F10); Deck hydrates real history over mock (F11).
-    Off by default → dev/CI need no DB. Live DB integration not run in CI.
-  - Note: sprint 1 (PR #4) merged to `main` — receiver, tunnel, publishers, CI,
-    design system + Team Dashboard. See PAST / ROADMAP Shipped log.
+  - What: agent-runner claims queued `agent_runs` and advances them (F12); pure
+    `agentEventToBeacon` bridge maps `AgentEvent` → `beacon.run.*` and the worker
+    POSTs to the receiver (F13). IO injected → bridge+runner unit-tested with no
+    DB/Redis. Real agent reasoning/tools still deferred (Execution plane).
+  - Note: PR #4 (sprint 1) and PR #5 (Epic 3 persistence) both merged to `main`.
 
-- **(merged) ROADMAP sprint 1 — receiver + tunnel + CI** — PR #4 ✅ merged
-  - Started: 2026-06-20
-  - Owners: E03 Priya (receiver), E06 Kenji (tunnel + CI), E10 Lex (`docs/ROADMAP.md`)
-  - Lanes: `docs/**`, `apps/api/src/**`, `.github/workflows/ci.yml`,
-    `scripts/tunnel.sh`, `infra/cloudflared/**`, `.env.example`, root `package.json`
-  - Status: `IN_FLIGHT` → `AWAITING_AUDIT` on merge
-  - What landed on the branch:
-    - **F1/F2** — `POST /hooks/beacon`: `x-beacon-token`-guarded, fail-closed,
-      server-side-redacting receiver. 202 on accept. `/api/*` auth untouched.
-    - **F3** — `pnpm tunnel` (quick + named cloudflared), `infra/cloudflared`
-      config template, `docs/CLOUDFLARE_TUNNEL.md`. The branch's namesake.
-    - **F20/F21** — `.github/workflows/ci.yml`: install → typecheck → tests on
-      every PR/push. The green gate is now enforced, not just aspirational.
-    - **F23/F24/F25** — Deck visual system: gradient color tokens (status + 10
-      employee ramps), the hexagonal **Forge Sigil** + **StatusPip** (circles
-      retired), and the **Team Dashboard** hero surface ("who's on what"). See
-      `docs/DESIGN_SYSTEM.md`. Typecheck + web build green.
-    - **F5/F6/F7** — real Claude Code publishers: `scripts/beacon-statusline.sh`
-      (POSIX) + `scripts/beacon-hook.mjs` (+ shared `lib/beacon-redact.mjs`),
-      wired via `.claude/settings.beacon.example.json`. Client-side redaction
-      tested (7 tests, in CI); end-to-end publisher→receiver verified (202,
-      secrets `«redacted»`). The "watch the AI team work" loop is closed.
-  - No DB migration (persistence is Epic 3). Real Cloudflare provisioning needs
-    the Operator's account/token — scaffold is one command from live.
+## Recently merged (this session)
+
+- **PR #5 · Epic 3** — Beacon persistence + replay (F8–F11). ✅ merged.
+- **PR #4 · sprint 1** — receiver, tunnel, publishers, CI, design system +
+  Team Dashboard (F1/F2/F3/F5/F6/F7/F20/F21/F23/F24/F25). ✅ merged.
 
 ## On deck (next 1–2)
 
-1. **Epic 3 (F8–F11)** — persist Beacon events to `audit_log` + replay on load
-   (so the Deck survives refresh and shows real history, not mock).
-2. **Epic 4 (F12/F13)** — worker run loop: a queued `agent_run` emits
-   `beacon.run.*` through the receiver — a mention drives a run that lights the Deck.
+1. **Epic 5 (F14–F16)** — wire Supabase auth + turn the UI-only approval gate into
+   a real one (also closes the `beacon_events`/replay RLS GAP).
+2. **Epic 6 (F17–F19)** — deck polish: real metrics in the pill, live-vs-mock
+   indicator, reconnect/backoff + dedupe in `useBeacon`.
 
 > Full plan: `docs/ROADMAP.md` (see the Shipped log at the bottom).
 
 ## 5-line summary (print at chat start)
 
-1. Current PR (#4): roadmap + receiver (F1/F2) + tunnel (F3) + CI (F20/F21) + design system (F23–25) + real publishers (F5/F6/F7).
-2. Owners: E03 Priya, E06 Kenji, E01 Maya, E09 Riya, E10 Lex. Lanes: docs, `apps/api`, `apps/web`, `.github`, `scripts`, `infra`.
-3. Risk: low — additive only, no migration, receiver fail-closed, publishers fail-open, `/api` auth intact.
-4. Green gate: CI runs typecheck + api + orchestrator + publisher tests; all green; end-to-end loop verified.
-5. On deck: Epic 3 persistence + replay, then Epic 4 worker run loop.
+1. Current PR: Epic 4 worker run loop (F12/F13) — queued run → `beacon.run.*` → Deck.
+2. Merged this session: PR #4 (sprint 1), PR #5 (Epic 3 persistence). On `main`.
+3. Risk: low — additive; bridge+runner pure/injected; worker DB/HTTP guarded + fail-open.
+4. Green gate: CI runs typecheck + orchestrator + api + publisher + worker tests; all green.
+5. On deck: Epic 5 auth + real approvals, then Epic 6 deck polish.

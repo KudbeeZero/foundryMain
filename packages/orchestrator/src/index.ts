@@ -4,6 +4,7 @@
 export const PACKAGE = "@foundry/orchestrator" as const;
 
 export * from "./beacon/index.js";
+export * from "./runloop/index.js";
 
 // Mock/demo data — explicitly namespaced so it is obvious at call sites that this
 // is local demo content, not production data.

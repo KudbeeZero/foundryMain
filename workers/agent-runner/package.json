@@ -8,5 +8,15 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@foundry/db": "workspace:*",
+    "@foundry/orchestrator": "workspace:*",
+    "@foundry/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3"
   }
 }
