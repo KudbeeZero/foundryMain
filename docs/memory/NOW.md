@@ -4,7 +4,20 @@
 
 ## In flight
 
-- **ROADMAP sprint 1 — receiver + tunnel + CI** — PR #4
+- **Epic 3 — Beacon persistence + replay** — new PR off `main`
+  - Started: 2026-06-20 · Branch: `claude/epic3-beacon-persistence`
+  - Owners: E05 Sasha (migration), E03 Priya (receiver/replay), E01 Maya (Deck hydrate)
+  - Lanes: `packages/db/**`, `apps/api/src/{beacon-store,routes/hooks,env}.ts`,
+    `apps/web/src/hooks/useBeacon.ts`, docs
+  - Status: `IN_FLIGHT` → `AWAITING_AUDIT` on merge
+  - What: additive `beacon_events` table (F8); opt-in receiver persistence behind
+    `BEACON_PERSIST`, fail-open, idempotent (F9); `GET /hooks/beacon/replay`
+    re-sanitized newest-first (F10); Deck hydrates real history over mock (F11).
+    Off by default → dev/CI need no DB. Live DB integration not run in CI.
+  - Note: sprint 1 (PR #4) merged to `main` — receiver, tunnel, publishers, CI,
+    design system + Team Dashboard. See PAST / ROADMAP Shipped log.
+
+- **(merged) ROADMAP sprint 1 — receiver + tunnel + CI** — PR #4 ✅ merged
   - Started: 2026-06-20
   - Owners: E03 Priya (receiver), E06 Kenji (tunnel + CI), E10 Lex (`docs/ROADMAP.md`)
   - Lanes: `docs/**`, `apps/api/src/**`, `.github/workflows/ci.yml`,

@@ -3,9 +3,15 @@
 > Top-of-file is the most important. Each item: severity (`P0` block-release /
 > `P1` block-next-horizon / `P2` nice-to-have), `Seen:`, `Revisit-by:`.
 
-- **P1 · Beacon events are in-memory only.** No persistence; a refresh replays
-  mock history, not real history. Closes in H+3.
-  - Seen: 2026-06-17 · Revisit-by: 2026-07-15
+- **RESOLVED 2026-06-20 · Beacon events are in-memory only.** Epic 3 added the
+  `beacon_events` table, opt-in persistence on the receiver (`BEACON_PERSIST`), and
+  `GET /hooks/beacon/replay` that the Deck hydrates from. Off by default; live DB
+  integration not yet exercised in CI (no Postgres there). Seen: 2026-06-17.
+
+- **P2 · `beacon_events` + replay have no RLS/auth.** The replay endpoint is
+  unauthenticated and the table has no row-level security; the read path is the API
+  service role only and events are redacted, so it's dev-safe — but must be gated
+  before any production deploy. Closes with Epic 5 (auth). Seen: 2026-06-20.
 
 - **P1 · Auth integration documented but not wired.** Foundry's auth lane (E07)
   is specified in `docs/team-system/AUTH_INTEGRATION.md` but no provider is

@@ -77,11 +77,20 @@ secrets into Beacon in the first place**.
   `createLiveEventGenerator()` power the local demo deck.
 - **API** — `GET /demo/beacon/events` and `GET /demo/beacon/state` serve the same
   mock data (dev-safe, no DB, outside the authed `/api` boundary).
-- **Worker / claude-code** — not wired yet. See
-  [`CLAUDE_CODE_INTEGRATION.md`](./CLAUDE_CODE_INTEGRATION.md).
+- **Claude Code** — shipped. `scripts/beacon-statusline.sh` + `scripts/beacon-hook.mjs`
+  publish to `POST /hooks/beacon`; see [`CLAUDE_CODE_INTEGRATION.md`](./CLAUDE_CODE_INTEGRATION.md).
+
+## Persistence + replay (Epic 3)
+
+Opt-in via `BEACON_PERSIST=true` (requires `DATABASE_URL`). When on, the receiver
+writes each accepted event to the `beacon_events` table (`apps/api/src/beacon-store.ts`,
+idempotent on the client event id), and `GET /hooks/beacon/replay` returns the
+newest-first, re-sanitized stream. The Deck hydrates from replay on load
+(`useBeacon`), folding real history over the mock seed. Off by default, so dev/CI
+run with no database; persistence is best-effort and never blocks a `202`.
 
 ## Not yet (deferred)
 
-- Persisting Beacon events (intended target: `audit_log`) — currently in-memory.
-- Real worker emitters.
-- Real Claude Code statusLine/hook ingestion.
+- Real worker emitters (`beacon.run.*` from `workers/agent-runner`) — Epic 4.
+- RLS / auth on `beacon_events` + the replay endpoint — Epic 5 (read path is
+  currently the API service role only).
