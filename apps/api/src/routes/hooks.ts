@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { timingSafeEqual } from "node:crypto";
-import { sanitizeBeaconEvent } from "@foundry/shared";
+import { sanitizeBeaconEvent, type BeaconEvent } from "@foundry/shared";
 import { env } from "../env.js";
 
 // Beacon hook receiver (ROADMAP F1 + F2). Accepts BeaconEvents from Claude Code
@@ -58,6 +58,24 @@ export function handleBeaconHook(
 
 export const hooksRoute = new Hono();
 
+// Persist an accepted event, best-effort. Dynamic-imported so the pure handler
+// (and its tests) never load the db driver, and so the db is only touched when
+// BEACON_PERSIST is on. A DB error is swallowed — it must never block the 202.
+function persistInBackground(event: BeaconEvent): void {
+  if (!env.BEACON_PERSIST) return;
+  void (async () => {
+    try {
+      const [{ db }, store] = await Promise.all([
+        import("../db.js"),
+        import("../beacon-store.js"),
+      ]);
+      await store.persistBeaconEvent(db, event);
+    } catch {
+      // DB down / not configured → drop silently (fail-open).
+    }
+  })();
+}
+
 // POST /hooks/beacon — accept one BeaconEvent from a publisher.
 hooksRoute.post("/beacon", async (c) => {
   let raw: unknown;
@@ -72,5 +90,27 @@ hooksRoute.post("/beacon", async (c) => {
     c.req.header("x-beacon-token"),
     raw,
   );
+  if (result.status === 202) {
+    persistInBackground(result.body.event as BeaconEvent);
+  }
   return c.json(result.body, result.status);
+});
+
+// GET /hooks/beacon/replay — newest-first slice of the persisted, re-sanitized
+// stream so the Deck can rehydrate real history on load (F10/F11). Returns an
+// empty list (never an error) when persistence is off or the DB is unreachable,
+// so the Deck degrades cleanly to mock mode.
+hooksRoute.get("/beacon/replay", async (c) => {
+  if (!env.BEACON_PERSIST) return c.json({ mode: "disabled", events: [] });
+  const limit = Math.min(Math.max(Number(c.req.query("limit")) || 200, 1), 1000);
+  try {
+    const [{ db }, store] = await Promise.all([
+      import("../db.js"),
+      import("../beacon-store.js"),
+    ]);
+    const events = await store.readBeaconEvents(db, limit);
+    return c.json({ mode: "live", events });
+  } catch {
+    return c.json({ mode: "error", events: [] });
+  }
 });

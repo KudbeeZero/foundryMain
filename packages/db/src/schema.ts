@@ -285,6 +285,40 @@ export const auditLog = pgTable(
   (t) => [index("audit_log_org_idx").on(t.orgId, t.createdAt)],
 );
 
+// Beacon event stream (ROADMAP Epic 3). Durable log of the presentation/telemetry
+// events the Command Deck folds. Deliberately NOT tenant-scoped the way the core
+// tables are: a Beacon event can be unattributed (mock / claude-code with no org),
+// and all scope refs are stored as free-text (Beacon uses string ids like "E01",
+// "S-1" — not uuids). Already redacted on the way in; re-redacted on the way out.
+// Additive only; touches no existing table. RLS deferred (read path is the API
+// service role; see docs/memory/GAPS.md).
+export const beaconEvents = pgTable(
+  "beacon_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: text("event_id").notNull(), // client-supplied BeaconEvent.id (idempotency)
+    type: text("type").notNull(),
+    eventTimestamp: timestamp("event_timestamp", { withTimezone: true }).notNull(),
+    source: text("source").notNull(),
+    status: text("status").notNull(),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    metadata: jsonb("metadata"),
+    orgId: text("org_id"),
+    agentId: text("agent_id"),
+    runId: text("run_id"),
+    sessionId: text("session_id"),
+    repoId: text("repo_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("beacon_events_created_idx").on(t.createdAt),
+    uniqueIndex("beacon_events_event_id_uq").on(t.eventId),
+  ],
+);
+
 export const agentMemory = pgTable(
   "agent_memory",
   {

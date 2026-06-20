@@ -8,6 +8,13 @@
       "when": 1781508129128,
       "tag": "0000_oval_magus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781959930984,
+      "tag": "0001_beacon_events",
+      "breakpoints": true
     }
   ]
 }

@@ -51,17 +51,32 @@ export function useBeacon(tickMs = 3500): UseBeacon {
     return () => clearInterval(id);
   }, [tickMs]);
 
-  // Optional hydrate from the dev-safe demo API (no-op if it isn't running).
+  // Hydrate from the API on load. Prefer the persisted Beacon stream
+  // (/hooks/beacon/replay — real history, Epic 3); fall back to the dev-safe demo
+  // events; if neither responds, stay in pure local mock mode. Either way we fold
+  // whatever real events we get on top of the mock seed.
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const fold = (raw: unknown[]) => {
+        if (cancelled || !Array.isArray(raw) || raw.length === 0) return false;
+        dispatch({ kind: "events", events: raw.map((e) => sanitizeBeaconEvent(e)) });
+        return true;
+      };
+      try {
+        const replay = await fetch("/hooks/beacon/replay");
+        if (replay.ok) {
+          const body = (await replay.json()) as { mode?: string; events?: unknown[] };
+          if (body.mode === "live" && fold(body.events ?? [])) return; // real history wins
+        }
+      } catch {
+        // receiver not reachable — fall through to demo / mock
+      }
       try {
         const res = await fetch("/demo/beacon/events");
         if (!res.ok) return;
         const body = (await res.json()) as { events?: unknown[] };
-        if (cancelled || !Array.isArray(body.events)) return;
-        const events = body.events.map((e) => sanitizeBeaconEvent(e));
-        dispatch({ kind: "events", events });
+        fold(body.events ?? []);
       } catch {
         // API not running — pure local mock mode. Expected, ignore.
       }

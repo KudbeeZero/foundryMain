@@ -12,4 +12,8 @@ export const env = {
   // Publishers send it as the `x-beacon-token` header. Empty by default, which
   // keeps the receiver disabled (fail-closed) until a token is configured.
   BEACON_HOOK_TOKEN: process.env.BEACON_HOOK_TOKEN ?? "",
+  // Persist accepted Beacon events to the `beacon_events` table and enable the
+  // replay endpoint. Off by default so dev/CI run with no database. Requires
+  // DATABASE_URL. Persistence is best-effort — a DB error never blocks a 202.
+  BEACON_PERSIST: process.env.BEACON_PERSIST === "true",
 } as const;

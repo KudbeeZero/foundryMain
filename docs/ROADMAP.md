@@ -137,6 +137,14 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > Newest first. Marks features that have landed on a branch / PR.
 
+- **2026-06-20 · Epic 3 · Beacon persistence + replay**
+  - ✅ **F8** — additive `beacon_events` table + migration `0001_beacon_events.sql` (no FK, no change to existing tables).
+  - ✅ **F9** — receiver persists accepted events (idempotent, dynamic-import, fail-open, behind `BEACON_PERSIST`).
+  - ✅ **F10** — `GET /hooks/beacon/replay` returns newest-first, re-sanitized stream; degrades cleanly (disabled/error → empty) with no DB.
+  - ✅ **F11** — Deck hydrates from replay on load (`useBeacon`), real history over the mock seed.
+  - Tests: pure row↔event mapping (`beacon-store.test.ts`, 3) in CI; replay degradation smoked. Live DB integration not run in CI (no Postgres) — persist is off by default, fail-open.
+  - Next: **Epic 4** worker run loop (`beacon.run.*`).
+
 - **2026-06-20 · PR #4 · sprint 1 kickoff**
   - ✅ **F1** — `POST /hooks/beacon` receiver (validate → `sanitizeBeaconEvent` → 202).
   - ✅ **F2** — `x-beacon-token` shared-secret guard, fail-closed (503/401), constant-time.
