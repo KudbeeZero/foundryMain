@@ -4,31 +4,34 @@
 
 ## In flight
 
-- **Roadmap + Beacon hook receiver (ROADMAP F1/F2)** — PR #4
+- **ROADMAP sprint 1 — receiver + tunnel + CI** — PR #4
   - Started: 2026-06-20
-  - Owner: E03 — Priya (Backend) · receiver · E10 Lex authored `docs/ROADMAP.md`
-  - Lanes: `docs/ROADMAP.md`, `docs/memory/**`, `apps/api/src/routes/hooks.ts`,
-    `apps/api/src/{index,env}.ts`, `apps/api/src/routes/index.ts`, `.env.example`
+  - Owners: E03 Priya (receiver), E06 Kenji (tunnel + CI), E10 Lex (`docs/ROADMAP.md`)
+  - Lanes: `docs/**`, `apps/api/src/**`, `.github/workflows/ci.yml`,
+    `scripts/tunnel.sh`, `infra/cloudflared/**`, `.env.example`, root `package.json`
   - Status: `IN_FLIGHT` → `AWAITING_AUDIT` on merge
-  - What: the prioritized features backlog (`docs/ROADMAP.md`, 7 epics / F1–F22)
-    plus the first feature — `POST /hooks/beacon`, an `x-beacon-token`-guarded,
-    fail-closed receiver that sanitizes every event server-side and 202s. No DB
-    migration (persistence is Epic 3); `/api/*` auth boundary untouched.
-  - Note: Stage 2 Command Deck + Beacon foundation already merged (see PAST).
+  - What landed on the branch:
+    - **F1/F2** — `POST /hooks/beacon`: `x-beacon-token`-guarded, fail-closed,
+      server-side-redacting receiver. 202 on accept. `/api/*` auth untouched.
+    - **F3** — `pnpm tunnel` (quick + named cloudflared), `infra/cloudflared`
+      config template, `docs/CLOUDFLARE_TUNNEL.md`. The branch's namesake.
+    - **F20/F21** — `.github/workflows/ci.yml`: install → typecheck → tests on
+      every PR/push. The green gate is now enforced, not just aspirational.
+  - No DB migration (persistence is Epic 3). Real Cloudflare provisioning needs
+    the Operator's account/token — scaffold is one command from live.
 
-## On deck (next 1–2) — start of ROADMAP sprint 1
+## On deck (next 1–2)
 
-1. **F3** — `cloudflared` tunnel + runbook so a dev box's receiver is publicly
-   reachable (the branch's namesake; Epic 1).
-2. **F5/F6** — real Claude Code statusLine + hook publishers post to the receiver.
-   Then Epic 3 persistence (`audit_log`) and replay.
+1. **F5/F6** — real Claude Code statusLine + hook publishers POST to the receiver
+   (the first true "watch the AI team work" moment; H+1).
+2. **Epic 3 (F8–F11)** — persist Beacon events to `audit_log` + replay on load.
 
-> Full plan: `docs/ROADMAP.md`.
+> Full plan: `docs/ROADMAP.md` (see the Shipped log at the bottom).
 
 ## 5-line summary (print at chat start)
 
-1. Current PR (#4): `docs/ROADMAP.md` (features backlog) + Beacon hook receiver F1/F2.
-2. Owner: E03 Priya (receiver), E10 Lex (roadmap). Lanes: docs, `apps/api` routes/env.
+1. Current PR (#4): roadmap + Beacon receiver (F1/F2) + cloudflared tunnel (F3) + CI (F20/F21).
+2. Owners: E03 Priya, E06 Kenji, E10 Lex. Lanes: docs, `apps/api`, `.github`, `scripts`, `infra`.
 3. Risk: low — additive only, no migration, receiver fail-closed, `/api` auth intact.
-4. Reviewers: E03 (API), E07 (token guard), E08 (tests — `hooks.test.ts`, 5 green).
-5. On deck: F3 cloudflared tunnel, then F5/F6 publishers, then Epic 3 persistence.
+4. Green gate: CI runs typecheck + api + orchestrator tests; all green locally.
+5. On deck: F5/F6 real publishers, then Epic 3 persistence + replay.

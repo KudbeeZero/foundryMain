@@ -127,3 +127,16 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > When an epic lands, move its line to `docs/memory/PAST.md`, update
 > `docs/memory/NOW.md`, and retire the matching `docs/memory/GAPS.md` entry.
+
+---
+
+## Shipped log
+
+> Newest first. Marks features that have landed on a branch / PR.
+
+- **2026-06-20 · PR #4 · sprint 1 kickoff**
+  - ✅ **F1** — `POST /hooks/beacon` receiver (validate → `sanitizeBeaconEvent` → 202).
+  - ✅ **F2** — `x-beacon-token` shared-secret guard, fail-closed (503/401), constant-time.
+  - ✅ **F3** — `pnpm tunnel` (quick + named cloudflared), `infra/cloudflared` template, `docs/CLOUDFLARE_TUNNEL.md`.
+  - ✅ **F20/F21** — `.github/workflows/ci.yml`: install → typecheck → api + orchestrator tests on every PR/push.
+  - Next: **F5/F6** (real publishers), then **Epic 3** (persist + replay).
