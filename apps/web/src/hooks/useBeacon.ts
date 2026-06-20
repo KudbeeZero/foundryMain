@@ -1,19 +1,22 @@
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   beaconReducer,
   createInitialBeaconState,
   createLiveEventGenerator,
   generateMockHistory,
   mockSeed,
+  nextBackoffMs,
   reduceBeaconEvents,
+  selectUnseen,
   type BeaconState,
 } from "@foundry/orchestrator";
 import { sanitizeBeaconEvent, type BeaconEvent } from "@foundry/shared";
 
-// React binding for the Beacon reducer. Initial state folds the mock history so
-// the deck is alive on first paint; a live ticker then dispatches fresh events on
-// an interval (this is what "mock Beacon events update UI state" means in the
-// acceptance criteria). If the dev API is up, /demo/beacon/events is folded in too.
+// React binding for the Beacon reducer. Initial state folds the mock history so the
+// deck is alive on first paint; a live ticker dispatches fresh mock events until
+// REAL data arrives. A reconnect/backoff loop (F19) polls the persisted stream
+// (/hooks/beacon/replay) and de-duplicates by event id, and exposes a live/demo/
+// local connection indicator (F18) so the operator can tell what they're looking at.
 
 type DeckAction =
   | { kind: "event"; event: BeaconEvent }
@@ -34,57 +37,110 @@ function init(): BeaconState {
 
 let synthCounter = 0;
 
+// "live"  → folding REAL persisted events (replay, mode: live)
+// "demo"  → API reachable but serving mock (/demo) data
+// "local" → no API; pure in-browser mock ticker
+export type ConnectionMode = "live" | "demo" | "local";
+
+export interface ConnectionState {
+  mode: ConnectionMode;
+  lastSyncAt: number | null;
+}
+
 export interface UseBeacon {
   state: BeaconState;
+  connection: ConnectionState;
   decideApproval: (approvalId: string, decision: "approved" | "rejected") => Promise<void>;
 }
 
 export function useBeacon(tickMs = 3500): UseBeacon {
   const [state, dispatch] = useReducer(deckReducer, undefined, init);
+  const [connection, setConnection] = useState<ConnectionState>({ mode: "local", lastSyncAt: null });
 
-  // Live mock ticker.
+  // Event ids already folded — the dedupe guard (F19). Seeded from the mock history
+  // so re-folding a replay snapshot never double-counts the stream.
+  const seen = useRef<Set<string> | null>(null);
+  if (seen.current === null) seen.current = new Set(state.events.map((e) => e.id));
+  const liveRef = useRef(false);
+
+  // Fold only the events we haven't seen, recording their ids. Returns how many.
+  const foldUnseen = useCallback((raw: unknown[]): number => {
+    const seenSet = seen.current!;
+    const events = raw.map((e) => sanitizeBeaconEvent(e));
+    const fresh = selectUnseen(seenSet, events);
+    for (const e of fresh) seenSet.add(e.id);
+    if (fresh.length > 0) dispatch({ kind: "events", events: fresh });
+    return fresh.length;
+  }, []);
+
+  // Live mock ticker — pauses once we're on REAL data so LIVE mode shows only real
+  // events. Deduped so it can never collide with a folded id.
   useEffect(() => {
     const gen = createLiveEventGenerator();
     const id = setInterval(() => {
-      dispatch({ kind: "event", event: gen.next(new Date()) });
+      if (liveRef.current) return;
+      const event = gen.next(new Date());
+      if (seen.current!.has(event.id)) return;
+      seen.current!.add(event.id);
+      dispatch({ kind: "event", event });
     }, tickMs);
     return () => clearInterval(id);
   }, [tickMs]);
 
-  // Hydrate from the API on load. Prefer the persisted Beacon stream
-  // (/hooks/beacon/replay — real history, Epic 3); fall back to the dev-safe demo
-  // events; if neither responds, stay in pure local mock mode. Either way we fold
-  // whatever real events we get on top of the mock seed.
+  // Reconnect/backoff poll of the real stream (F19). On success it re-syncs at a
+  // steady cadence; on failure it backs off exponentially. Dropping and restoring
+  // the API neither duplicates (dedupe) nor freezes (the loop keeps retrying) the
+  // stream.
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const fold = (raw: unknown[]) => {
-        if (cancelled || !Array.isArray(raw) || raw.length === 0) return false;
-        dispatch({ kind: "events", events: raw.map((e) => sanitizeBeaconEvent(e)) });
-        return true;
-      };
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempt = 0;
+
+    const poll = async () => {
+      let mode: ConnectionMode = "local";
+      let connected = false;
       try {
         const replay = await fetch("/hooks/beacon/replay");
         if (replay.ok) {
+          connected = true;
           const body = (await replay.json()) as { mode?: string; events?: unknown[] };
-          if (body.mode === "live" && fold(body.events ?? [])) return; // real history wins
+          if (body.mode === "live") {
+            foldUnseen(Array.isArray(body.events) ? body.events : []);
+            mode = "live";
+          }
+        }
+        if (mode !== "live") {
+          const demo = await fetch("/demo/beacon/events");
+          if (demo.ok) {
+            connected = true;
+            const body = (await demo.json()) as { events?: unknown[] };
+            foldUnseen(Array.isArray(body.events) ? body.events : []);
+            mode = "demo";
+          }
         }
       } catch {
-        // receiver not reachable — fall through to demo / mock
+        connected = false; // network error → treat as offline, back off
       }
-      try {
-        const res = await fetch("/demo/beacon/events");
-        if (!res.ok) return;
-        const body = (await res.json()) as { events?: unknown[] };
-        fold(body.events ?? []);
-      } catch {
-        // API not running — pure local mock mode. Expected, ignore.
+      if (cancelled) return;
+
+      liveRef.current = mode === "live";
+      if (connected) {
+        attempt = 0;
+        setConnection({ mode, lastSyncAt: Date.now() });
+        timer = setTimeout(poll, tickMs * 2); // steady re-sync
+      } else {
+        attempt += 1;
+        setConnection((prev) => ({ mode: "local", lastSyncAt: prev.lastSyncAt }));
+        timer = setTimeout(poll, nextBackoffMs(attempt, { baseMs: 1000, maxMs: 30000 }));
       }
-    })();
+    };
+
+    void poll();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [tickMs, foldUnseen]);
 
   // Approval decision (Epic 5 · F16). Calls the real authed endpoint
   // (POST /api/approvals/:id/decision) so the decision persists and the run
@@ -128,5 +184,5 @@ export function useBeacon(tickMs = 3500): UseBeacon {
     [],
   );
 
-  return { state, decideApproval };
+  return { state, connection, decideApproval };
 }
