@@ -11,11 +11,11 @@ import { MemoryLayers } from "./components/MemoryLayers";
 import styles from "./App.module.css";
 
 export function App() {
-  const { state, decideApproval } = useBeacon();
+  const { state, connection, decideApproval } = useBeacon();
 
   return (
     <div className={styles.shell}>
-      <CommandBar state={state} />
+      <CommandBar state={state} connection={connection} />
       <BeaconPill state={state} />
       <TeamDashboard state={state} />
 

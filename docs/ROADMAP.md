@@ -137,6 +137,13 @@ persistence (Epic 3) and the worker loop (Epic 4).
 
 > Newest first. Marks features that have landed on a branch / PR.
 
+- **2026-06-20 · Epic 6 · Command Deck UX polish**
+  - ✅ **F17** — statusline publisher (`scripts/beacon-statusline.sh`) forwards real session metrics (`costUsd`, `elapsedMs`, lines changed) from Claude Code's `.cost` via jq; the reducer + Beacon pill already consume them, so the pill shows real numbers. Fail-open (no-jq fallback = repo+model). Verified locally.
+  - ✅ **F18** — connection indicator in the Command Bar: **live** (real persisted stream) / **demo** (API up, mock) / **local** (offline) with a colored dot, threaded from `useBeacon`.
+  - ✅ **F19** — `useBeacon` reconnect/backoff loop polling `/hooks/beacon/replay` with exponential backoff, and **dedupe by event id** (pure `selectUnseen` + `nextBackoffMs` in `@foundry/orchestrator`, 5 tests). Dropping/restoring the API never duplicates or freezes the stream; the mock ticker pauses once real data flows.
+  - Tests: stream helpers 5 (orchestrator → 24 total). 51 tests green overall.
+  - This completes the roadmap's deck + loop epics (F1–F25 less the Execution plane).
+
 - **2026-06-20 · Epic 5 · Real approvals + auth**
   - ✅ **F14** — Supabase HS256 JWT auth on `/api/*` (was already wired in `middleware/auth.ts`); hardened intent + a **hermetic test** (`jose` signs a token → middleware accepts valid, rejects missing / malformed / wrong-secret / expired / org-less). `/api/*` rejects missing/invalid tokens with a real provider, proven in CI.
   - ✅ **F15** — real approval gate: `GET /api/approvals` + `POST /api/approvals/:id/decision` (authed, org-scoped). A decision writes `approval_requests` (status + decided_by/at) and transitions the linked `agent_runs` — **approve → running, reject → cancelled**. Pure `resolveApprovalDecision` unit-tested; already-decided → 409.

@@ -5,8 +5,10 @@
 #
 # Claude Code pipes session JSON on stdin and shows whatever we print on stdout.
 # We print a compact status line AND (best-effort) publish a redacted snapshot to
-# the Beacon receiver. Only benign fields leave the box: repo + model. No prompt,
-# no tokens-from-env, no secrets — and the receiver re-redacts server-side anyway.
+# the Beacon receiver. Only benign fields leave the box: repo + model + numeric
+# session metrics (cost USD, elapsed ms, lines changed — F17, so the Beacon pill
+# shows real numbers). No prompt, no tokens-from-env, no secrets — and the receiver
+# re-redacts server-side anyway.
 #
 # Config (env):
 #   FOUNDRY_BEACON_URL  receiver base URL, e.g. https://x.trycloudflare.com
@@ -34,7 +36,26 @@ printf '◆ %s · %s\n' "$repo" "$model"
 if [ -n "${FOUNDRY_BEACON_URL:-}" ] && [ -n "${BEACON_HOOK_TOKEN:-}" ] && command -v curl >/dev/null 2>&1; then
   ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   id="sl-$(date +%s)-$$"
-  payload="$(cat <<JSON
+  if command -v jq >/dev/null 2>&1; then
+    # Build the snapshot with jq so quoting is safe and the real session metrics
+    # (only included when actually present) ride along in metadata. Claude Code's
+    # statusLine JSON exposes these under `.cost`.
+    payload="$(printf '%s' "$raw" | jq -c \
+      --arg id "$id" --arg ts "$ts" --arg repo "$repo" --arg model "$model" --arg session "$session" '
+      {
+        id: $id, type: "beacon.claude.statusline.snapshot", timestamp: $ts,
+        source: "claude-code", status: "thinking", title: "statusline",
+        message: ("◆ " + $repo + " · " + $model),
+        metadata: ({ repo: $repo, model: $model }
+          + (if (.cost.total_cost_usd? // null) != null then { costUsd: .cost.total_cost_usd } else {} end)
+          + (if (.cost.total_duration_ms? // null) != null then { elapsedMs: .cost.total_duration_ms } else {} end)
+          + (if (.cost.total_lines_added? // null) != null then { linesAdded: .cost.total_lines_added } else {} end)
+          + (if (.cost.total_lines_removed? // null) != null then { linesRemoved: .cost.total_lines_removed } else {} end)),
+        sessionId: $session, repoId: $repo
+      }' 2>/dev/null)"
+  fi
+  # Fallback (no jq, or jq failed): repo + model only.
+  [ -z "${payload:-}" ] && payload="$(cat <<JSON
 {"id":"$id","type":"beacon.claude.statusline.snapshot","timestamp":"$ts","source":"claude-code","status":"thinking","title":"statusline","message":"◆ $repo · $model","metadata":{"repo":"$repo","model":"$model"},"sessionId":"$session","repoId":"$repo"}
 JSON
 )"
