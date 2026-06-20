@@ -8,4 +8,8 @@ export const env = {
   // "false"/"0" in production. These routes are unauthenticated but read-only and
   // serve mock data only — they never touch the database.
   ENABLE_DEMO_ROUTES: process.env.ENABLE_DEMO_ROUTES !== "false" && process.env.ENABLE_DEMO_ROUTES !== "0",
+  // Shared secret guarding the Beacon hook receiver (POST /hooks/beacon).
+  // Publishers send it as the `x-beacon-token` header. Empty by default, which
+  // keeps the receiver disabled (fail-closed) until a token is configured.
+  BEACON_HOOK_TOKEN: process.env.BEACON_HOOK_TOKEN ?? "",
 } as const;

@@ -16,8 +16,11 @@
   no DB write, no tool execution. Intentional for this stage.
   - Seen: 2026-06-17 · Revisit-by: when H+2 lands a real run loop
 
-- **P2 · No real Claude Code hooks.** Only mock sources + contracts exist.
-  - Seen: 2026-06-17 · Revisit-by: H+1
+- **P2 · No real Claude Code hooks — publisher half still open.** The receiver
+  landed (`POST /hooks/beacon`, ROADMAP F1/F2), but the statusLine/hook publishers
+  (F5/F6) and the public tunnel (F3) are not built yet, so no real session reaches
+  it. Closes across ROADMAP sprint 1.
+  - Seen: 2026-06-17 · Updated: 2026-06-20 · Revisit-by: H+1
 
 - **P2 · `/demo/*` routes are unauthenticated.** Safe (read-only, mock, no DB),
   gated by `ENABLE_DEMO_ROUTES`. Must stay off in production.

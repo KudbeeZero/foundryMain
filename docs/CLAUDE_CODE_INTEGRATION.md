@@ -71,9 +71,12 @@ A POSIX (`bash` + `jq` + `curl`) equivalent will ship alongside.
 
 ## 2. Hook receiver endpoint
 
-A future authenticated endpoint (proposed `POST /hooks/beacon`) accepts hook
+`POST /hooks/beacon` (shipped — `apps/api/src/routes/hooks.ts`) accepts hook
 payloads from a Claude Code `settings.json` hook config and converts each to a
-`BeaconEvent`. It **must** redact via `sanitizeBeaconEvent` before persisting.
+`BeaconEvent`. It is guarded by a shared `BEACON_HOOK_TOKEN` sent as the
+`x-beacon-token` header (fail-closed: no token configured → `503`; wrong/missing
+token → `401`) and always re-redacts via `sanitizeBeaconEvent` server-side before
+acknowledging with `202`. Durable persistence is still deferred (ROADMAP Epic 3).
 
 ### Hook → Beacon mapping
 
@@ -136,8 +139,8 @@ sent — redaction is enforced server-side, not trusted to the client.
 |---|---|
 | Beacon contract + reducer | ✅ shipped (`@foundry/shared`, `@foundry/orchestrator`) |
 | Mock event sources | ✅ shipped (`/demo/beacon/*`, web ticker) |
-| statusLine publisher | ⛔ documented only |
-| Hook receiver endpoint | ⛔ documented only |
+| statusLine publisher | ⛔ documented only (ROADMAP F5) |
+| Hook receiver endpoint | ✅ shipped — `POST /hooks/beacon`, `x-beacon-token` guard, server-side redaction, no persistence yet (ROADMAP F1/F2) |
 | Transcript watcher | ⛔ documented only |
 
 See the Phase 2 prompt at the bottom of the PR description to build the real
