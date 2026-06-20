@@ -1,0 +1,24 @@
+/* Forge Sigil — hexagonal employee token. The outer hex is the status ring; the
+   inner hex (inset 2px) carries the employee gradient. Glow scales with status. */
+.sigil {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--ringc);
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--ringc) 55%, transparent));
+}
+
+.inner {
+  display: grid;
+  place-items: center;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+  background: var(--g);
+  color: #0a0d12;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+}

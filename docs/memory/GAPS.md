@@ -16,8 +16,11 @@
   no DB write, no tool execution. Intentional for this stage.
   - Seen: 2026-06-17 · Revisit-by: when H+2 lands a real run loop
 
-- **P2 · No real Claude Code hooks.** Only mock sources + contracts exist.
-  - Seen: 2026-06-17 · Revisit-by: H+1
+- **RESOLVED 2026-06-20 · Real Claude Code hooks.** Receiver (F1/F2), tunnel (F3),
+  and publishers (F5/F6/F7) all landed on PR #4; end-to-end publisher→receiver
+  verified with server- and client-side redaction. Remaining: events are still
+  in-memory (see the persistence gap below) and real Cloudflare provisioning needs
+  the Operator's account. Seen: 2026-06-17 · Resolved: 2026-06-20.
 
 - **P2 · `/demo/*` routes are unauthenticated.** Safe (read-only, mock, no DB),
   gated by `ENABLE_DEMO_ROUTES`. Must stay off in production.

@@ -1,0 +1,25 @@
+/* Hexagonal status pip — the gradient replacement for round status dots. */
+.pip {
+  display: inline-block;
+  flex: 0 0 auto;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.pulse {
+  animation: pip-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pip-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

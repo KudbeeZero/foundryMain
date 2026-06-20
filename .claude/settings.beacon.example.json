@@ -1,0 +1,21 @@
+{
+  "//": "Example Foundry Beacon wiring for Claude Code (ROADMAP F5/F6). Copy the",
+  "//statusline": "blocks you want into your real .claude/settings.json. Set",
+  "//env": "FOUNDRY_BEACON_URL + BEACON_HOOK_TOKEN in your shell first. All hooks",
+  "//failopen": "are best-effort and never block the session (the scripts exit 0).",
+
+  "statusLine": {
+    "type": "command",
+    "command": "bash scripts/beacon-statusline.sh"
+  },
+
+  "hooks": {
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs SessionStart" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs UserPromptSubmit" }] }],
+    "PreToolUse": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs PreToolUse" }] }],
+    "PostToolUse": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs PostToolUse" }] }],
+    "Notification": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs Notification" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs Stop" }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "node scripts/beacon-hook.mjs SubagentStop" }] }]
+  }
+}

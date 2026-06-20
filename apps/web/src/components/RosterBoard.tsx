@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import { selectEmployees, type BeaconState } from "@foundry/orchestrator";
-import { fmtClock } from "../lib/format";
+import { employeeGradient, fmtClock, statusColor } from "../lib/format";
+import { Sigil } from "./Sigil";
 import { StatusBadge } from "./StatusBadge";
 import styles from "./RosterBoard.module.css";
 
@@ -17,9 +19,14 @@ export function RosterBoard({ state }: { state: BeaconState }) {
           const assignment = e.currentAssignment
             ? state.workOrders[e.currentAssignment]
             : null;
+          const cardStyle = {
+            "--g": employeeGradient(e.id),
+            "--ringc": statusColor(e.status),
+          } as CSSProperties;
           return (
-            <article key={e.id} className={styles.card}>
+            <article key={e.id} className={styles.card} style={cardStyle}>
               <div className={styles.top}>
+                <Sigil id={e.id} name={e.name} status={e.status} size={34} />
                 <span className={styles.id}>{e.id}</span>
                 <span className={styles.level}>{e.level}</span>
                 <StatusBadge status={e.status} />

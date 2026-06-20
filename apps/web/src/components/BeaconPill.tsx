@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { selectBeaconPill, type BeaconState } from "@foundry/orchestrator";
 import { fmtCost, fmtDuration, fmtPct, fmtTokens, statusColor, statusLabel } from "../lib/format";
+import { StatusPip } from "./StatusPip";
 import styles from "./BeaconPill.module.css";
 
 // Surface B — the Foundry-branded live Beacon pill (Glint-style, but ours).
@@ -13,7 +14,7 @@ export function BeaconPill({ state }: { state: BeaconState }) {
       <div className={styles.left}>
         <span className={styles.beaconLabel}>BEACON</span>
         <span className={styles.status} style={{ color }}>
-          <span className={styles.statusDot} style={{ background: color }} />
+          <StatusPip status={pill.status} size={9} />
           {statusLabel(pill.status)}
         </span>
       </div>

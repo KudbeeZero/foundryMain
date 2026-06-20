@@ -12,7 +12,8 @@
     "typecheck": "pnpm -r exec tsc --noEmit",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "deck": "pnpm --filter @foundry/web dev"
+    "deck": "pnpm --filter @foundry/web dev",
+    "tunnel": "bash scripts/tunnel.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

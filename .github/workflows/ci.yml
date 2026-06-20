@@ -1,0 +1,47 @@
+# Foundry CI — the green/red gate (ROADMAP F20/F21).
+# "We always stay green": every PR and every push to main must typecheck and pass
+# all tests before it can merge. Additive, no secrets, no external services.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref so the latest push is the source of truth.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  green:
+    name: typecheck + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (blocking green/red gate)
+        run: pnpm -r exec tsc --noEmit
+
+      - name: Test — shared/orchestrator (Beacon reducer + redaction)
+        run: pnpm --filter @foundry/orchestrator test
+
+      - name: Test — api (Beacon hook receiver)
+        run: pnpm --filter @foundry/api test
+
+      - name: Test — Claude Code publishers (redaction / no secrets leak)
+        run: node --test scripts/beacon-hook.test.mjs

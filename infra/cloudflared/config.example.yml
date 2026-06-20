@@ -1,0 +1,24 @@
+# Foundry Beacon — named Cloudflare Tunnel config (TEMPLATE).
+#
+# Copy to infra/cloudflared/config.yml and fill in the two placeholders, then run:
+#   pnpm tunnel named foundry-beacon
+#
+# One-time setup that produces these values is in docs/CLOUDFLARE_TUNNEL.md
+# (cloudflared login → tunnel create → route dns).
+#
+# Hardening: ingress only routes the receiver + health check to the API; every
+# other path returns 404, so the public surface is exactly POST /hooks/beacon
+# (token-gated) and GET /health. The authenticated /api/* plane is NOT exposed.
+
+tunnel: foundry-beacon
+credentials-file: /home/REPLACE_ME/.cloudflared/REPLACE_WITH_TUNNEL_ID.json
+
+ingress:
+  - hostname: beacon.example.com
+    path: ^/hooks/.*$
+    service: http://localhost:8787
+  - hostname: beacon.example.com
+    path: ^/health$
+    service: http://localhost:8787
+  # Catch-all: refuse anything else (do not expose /api or /demo publicly).
+  - service: http_status:404
