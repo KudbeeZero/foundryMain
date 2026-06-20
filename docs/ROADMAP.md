@@ -145,4 +145,7 @@ persistence (Epic 3) and the worker loop (Epic 4).
   - ✅ **F23** — robust gradient color system (status + 10 employee ramps + brand) in `tokens.css` + `format.ts` helpers.
   - ✅ **F24** — Forge Sigil (hexagon) + StatusPip; round entity/status dots retired.
   - ✅ **F25** — Team Dashboard hero surface (`docs/DESIGN_SYSTEM.md`); "who's on what" from selectors.
-  - Next: **F5/F6** (real publishers), then **Epic 3** (persist + replay).
+  - ✅ **F5** — `scripts/beacon-statusline.sh` POSIX statusLine publisher (repo+model only).
+  - ✅ **F6** — `scripts/beacon-hook.mjs` hook publisher + `.claude/settings.beacon.example.json`.
+  - ✅ **F7** — `scripts/lib/beacon-redact.mjs` + `beacon-hook.test.mjs` (7 tests): no prompt body, no secret ever leaves the box. Wired into CI. End-to-end publisher→receiver verified (202, redacted).
+  - Next: **Epic 3** (persist Beacon to `audit_log` + replay), then **Epic 4** (worker run loop).

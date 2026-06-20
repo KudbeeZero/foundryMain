@@ -65,7 +65,9 @@ try {
 } catch { }   # offline / receiver down → ignore, status line still works
 ```
 
-A POSIX (`bash` + `jq` + `curl`) equivalent will ship alongside.
+The POSIX (`bash` + `jq` + `curl`) equivalent is shipped: `scripts/beacon-statusline.sh`.
+Wire it (and the hooks below) from `.claude/settings.beacon.example.json`; set
+`FOUNDRY_BEACON_URL` (the `pnpm tunnel` URL for a remote box) and `BEACON_HOOK_TOKEN`.
 
 ---
 
@@ -139,8 +141,9 @@ sent — redaction is enforced server-side, not trusted to the client.
 |---|---|
 | Beacon contract + reducer | ✅ shipped (`@foundry/shared`, `@foundry/orchestrator`) |
 | Mock event sources | ✅ shipped (`/demo/beacon/*`, web ticker) |
-| statusLine publisher | ⛔ documented only (ROADMAP F5) |
-| Hook receiver endpoint | ✅ shipped — `POST /hooks/beacon`, `x-beacon-token` guard, server-side redaction, no persistence yet (ROADMAP F1/F2) |
+| statusLine publisher | ✅ shipped — `scripts/beacon-statusline.sh` (POSIX bash+jq+curl), sends repo+model only (F5) |
+| Hook publisher | ✅ shipped — `scripts/beacon-hook.mjs` + `scripts/lib/beacon-redact.mjs`, client-side redaction tested (F6/F7) |
+| Hook receiver endpoint | ✅ shipped — `POST /hooks/beacon`, `x-beacon-token` guard, server-side redaction, no persistence yet (F1/F2) |
 | Transcript watcher | ⛔ documented only |
 
 See the Phase 2 prompt at the bottom of the PR description to build the real

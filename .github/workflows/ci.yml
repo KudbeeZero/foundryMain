@@ -42,3 +42,6 @@ jobs:
 
       - name: Test — api (Beacon hook receiver)
         run: pnpm --filter @foundry/api test
+
+      - name: Test — Claude Code publishers (redaction / no secrets leak)
+        run: node --test scripts/beacon-hook.test.mjs
